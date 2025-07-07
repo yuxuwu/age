@@ -9,6 +9,7 @@ CFLAGS:=-I SDL3-${SDL_VERSION}/${ARCH}/include
 LDFLAGS:=-L SDL3-${SDL_VERSION}/${ARCH}/lib -lSDL3 -mwindows
 
 
+
 ### HELLO START ####################################################	
 HELLO_DIR:=samples/hello
 HELLO_FILENAMES:=hello.c
@@ -51,13 +52,34 @@ run_test1: test1
 
 
 
+### TEST2 START ###################################################
+TEST2_DIR:=samples/test2
+TEST2_FILENAMES:=main.c
+TEST2_OBJECTS:=${patsubst %.c, ${TEMP_DIR}/%.o, ${TEST2_FILENAMES}}
+
+test2: ${FOLDERS} ${BUILD_DIR}/resources ${TEST2_OBJECTS} ${BUILD_DIR}/SDL3.dll
+	# START: test2
+	gcc ${TEST2_OBJECTS} -o ${BUILD_DIR}/test2.exe ${LDFLAGS}
+	
+${TEST2_OBJECTS}: ${TEMP_DIR}/%.o: ${TEST2_DIR}/%.c
+	# START: test2 main.o
+	gcc -c $< -o $@ ${CFLAGS}
+
+run_test2: test2
+	./${BUILD_DIR}/test2.exe
+### TEST2 END #####################################################
+
+
+
 ${BUILD_DIR}/SDL3.dll: SDL3-${SDL_VERSION}/${ARCH}/bin/SDL3.dll ${BUILD_DIR}
 	# START: SDL3.dll
 	cp $< ${BUILD_DIR}/SDL3.dll
  
+ 
 ${FOLDERS}:
 	# START: folders
 	@mkdir -p $@
+ 
  
 clean:
 	# START: clean

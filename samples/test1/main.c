@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
-#include <SDL3/SDL_filesystem.h>
 
 SDL_Window* gWindow = NULL;
 SDL_Surface* gScreenSurface = NULL;
