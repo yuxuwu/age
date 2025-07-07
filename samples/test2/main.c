@@ -80,7 +80,7 @@ void loop() {
 	
 	while (!quit) {	
 		// process events
-		while (SDL_PollEvent( &e )) {	
+		while (SDL_PollEvent(&e)) {	
 			if (e.type == SDL_EVENT_QUIT) {
 				quit = true;
 			}
