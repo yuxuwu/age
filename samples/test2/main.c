@@ -1,29 +1,34 @@
 #include <stdio.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3_image/SDL_image.h>
+
+struct Player {
+	int x, y;
+	
+};
 
 SDL_Window* gWindow = NULL;
 SDL_Surface* gScreenSurface = NULL;
+SDL_Renderer* gRenderer = NULL;
 
-bool init() {
+SDL_Texture* flower = NULL;
+
+bool quit = false;
+	
+
+bool Init() {
 	bool success = SDL_Init(SDL_INIT_VIDEO);
 	if (!success) {
 		SDL_Log("Initialization failed! %s\n", SDL_GetError());
 	}
 	
+	
 	return success;
 }
 
-void end() {
-	SDL_DestroyWindow(gWindow);
-	
-	gWindow = NULL;
-	gScreenSurface = NULL;
-	
-	SDL_Quit();
-}
-
-bool makeWindow() {
+bool InitWindow() {
 	const int kScreenWidth = 640;
 	const int kScreenHeight = 480;
 	
@@ -33,8 +38,21 @@ bool makeWindow() {
 		return false;
 	}
 	
-	gScreenSurface = SDL_GetWindowSurface(gWindow);
+	//gScreenSurface = SDL_GetWindowSurface(gWindow);
 	
+	return true;
+}
+
+bool InitRenderer() {
+	gRenderer = SDL_CreateRenderer(gWindow, NULL); 
+	if (gRenderer == NULL) {
+		SDL_Log("Renderer creation failed! %s\n", SDL_GetError());
+		return false;
+	}
+	return true;
+}
+
+void SetFullscreen() {
 	int numDisplays;
 	SDL_DisplayID* displayId = SDL_GetDisplays(&numDisplays);
 	SDL_Log("Found %d displays.\n", numDisplays);
@@ -68,48 +86,111 @@ bool makeWindow() {
 	}
 	
 	SDL_free(displayId);
-	return true;
 }
 
-void loop() {
-	bool quit = false;
+void End() {
+	SDL_DestroyWindow(gWindow);
 	
+	gWindow = NULL;
+	gScreenSurface = NULL;
+	
+	SDL_Quit();
+}
+
+void ProcessInput() {
 	SDL_Event e;
 	SDL_zero(e);
 	
-	
-	while (!quit) {	
-		// process events
-		while (SDL_PollEvent(&e)) {	
-			if (e.type == SDL_EVENT_QUIT) {
+	// process events
+	while (SDL_PollEvent(&e)) {
+		switch(e.type) {
+			case SDL_EVENT_QUIT:
 				quit = true;
-			}
-		}		
-		
-		// perform updates
-		
-		// render
-		SDL_FillSurfaceRect( gScreenSurface,
-			NULL,
-			SDL_MapSurfaceRGB( gScreenSurface, 0xFF, 0xFF, 0xFF) );
-		SDL_UpdateWindowSurface(gWindow);
+				break;
+			case SDL_EVENT_KEY_DOWN:
+				quit = true;
+				break;
+			case SDL_EVENT_MOUSE_MOTION:
+				break;
+			default:
+				SDL_Log("Unhandled event!\n");
+				break;
+		}
+	}
+}
+
+void Update() {
+
+}
+
+void Render() {
+	// render
+	/*
+	SDL_FillSurfaceRect( gScreenSurface,
+		NULL,
+		SDL_MapSurfaceRGB( gScreenSurface, 0xFF, 0xFF, 0xFF) );
+	SDL_UpdateWindowSurface(gWindow);
+	*/
+	
+	SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_RenderClear(gRenderer);
+	
+	SDL_FRect dstRect = {10, 10, 32, 32};
+	SDL_RenderTexture(gRenderer, flower, NULL, &dstRect);
+	/*
+	SDL_SetRenderDrawColor(gRenderer, 0,0,0,0xFF);
+	SDL_FRect rect = {10, 10, 20, 20};
+	SDL_RenderFillRect(gRenderer, &rect);
+	*/
+	SDL_RenderPresent(gRenderer);
+}
+
+void BeforeLoop() {
+	// Load flower image
+	char imagePath[512];
+	snprintf(imagePath, sizeof(imagePath), "%s%s", SDL_GetBasePath(),"resources\\flower.png");
+	SDL_Surface* tempSurf = IMG_Load(imagePath);
+	if (tempSurf == NULL) {
+		SDL_Log("Failed to load flower! %s\n", SDL_GetError());
+	}
+	flower = SDL_CreateTextureFromSurface(gRenderer, tempSurf);
+	SDL_DestroySurface(tempSurf);
+	
+}
+
+void MainLoop() {
+
+	while (!quit) {	
+		ProcessInput();
+		Update();
+		Render();
 	}
 	
 }
 
 int main(int argc, char** argv) {
-	bool initSuccess = init();
+	bool initSuccess = Init();
 
 	if (initSuccess) {
 		printf("SDL3 Initialized Successfully!\n");
 	} else {
 		printf("SDL3 Initialization failed.\n");
+		return -1;
 	}
 	
-	makeWindow();
+	if (!InitWindow()) {
+		SDL_Log("Failed to create window!\n");
+		return -1;
+	}
+	if (!InitRenderer()) {
+		SDL_Log("Failed to create renderer!\n");
+		return -1;
+	}
+
+	BeforeLoop();
 	
-	loop();
+	MainLoop();
 	
-	end();
+	End();
 	return 0;
 }

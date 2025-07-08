@@ -3,11 +3,17 @@ TEMP_DIR:=temp
 FOLDERS:= ${TEMP_DIR} ${BUILD_DIR}
 
 ARCH:=$(shell ./tools/arch.exe)
-SDL_VERSION:=3.2.16
-SDL_LOCATION:=SDL3-${SDL_VERSION}/${ARCH}/bin/SDL3.dll
 
-CFLAGS:=-I SDL3-${SDL_VERSION}/${ARCH}/include
-LDFLAGS:=-L SDL3-${SDL_VERSION}/${ARCH}/lib -lSDL3 -mwindows
+SDL_VERSION:=3.2.16
+SDL_LOCATION:=thirdparty/SDL3-${SDL_VERSION}/${ARCH}
+SDL_DLL_LOCATION:=${SDL_LOCATION}/bin/SDL3.dll
+
+SDLIMAGE_VERSION:=3.2.4
+SDLIMAGE_LOCATION:=thirdparty/SDL3_image-${SDLIMAGE_VERSION}/${ARCH}
+SDLIMAGE_DLL_LOCATION:=${SDLIMAGE_LOCATION}/bin/SDL3_image.dll
+
+CFLAGS:=-I ${SDL_LOCATION}/include -I ${SDLIMAGE_LOCATION}/include
+LDFLAGS:=-L ${SDL_LOCATION}/lib -lSDL3 -L ${SDLIMAGE_LOCATION}/lib -lSDL3_image -mwindows
 
 
 
@@ -33,7 +39,8 @@ ${HELLO_OBJECTS}: ${TEMP_DIR}/${HELLO_NAME}/%.o: ${HELLO_DIR}/%.c
 
 ${HELLO_BUILD_DIR}/SDL3.dll:
 	# START: $@
-	cp -p ${SDL_LOCATION} $@
+	cp -p ${SDL_DLL_LOCATION} $@
+	
 
 run_hello: hello
 	./${BUILD_DIR}/${HELLO_NAME}/hello.exe
@@ -50,7 +57,7 @@ TEST1_BUILD_DIR:=${BUILD_DIR}/${TEST1_NAME}
 TEST1_OBJECTS:=${patsubst %.c, ${TEST1_TEMP_DIR}/%.o, ${TEST1_FILENAMES}}
 
 
-test1: ${FOLDERS} ${TEST1_TEMP_DIR} ${TEST1_BUILD_DIR} ${BUILD_DIR}/resources ${TEST1_OBJECTS} ${TEST1_BUILD_DIR}/SDL3.dll
+test1: ${FOLDERS} ${TEST1_TEMP_DIR} ${TEST1_BUILD_DIR} ${TEST1_BUILD_DIR}/resources ${TEST1_OBJECTS} ${TEST1_BUILD_DIR}/SDL3.dll
 	# START: test1
 	gcc ${TEST1_OBJECTS} -o ${TEST1_BUILD_DIR}/test1.exe ${LDFLAGS}
 
@@ -58,12 +65,12 @@ ${TEST1_OBJECTS}: ${TEST1_TEMP_DIR}/%.o: ${TEST1_DIR}/%.c
 	# START: test1 main.o
 	gcc -c $< -o $@ ${CFLAGS}
 
-${BUILD_DIR}/resources:
+${TEST1_BUILD_DIR}/resources:
 	# START: test1_binaries
-	cp -r ${TEST1_DIR}/resources ${TEST1_BUILD_DIR}
+	cp -r ${TEST1_DIR}/resources $@
 
 ${TEST1_BUILD_DIR}/SDL3.dll: 
-	cp -p ${SDL_LOCATION} $@
+	cp -p ${SDL_DLL_LOCATION} $@
 
 ${TEST1_TEMP_DIR} ${TEST1_BUILD_DIR}:
 	# START: $@
@@ -84,7 +91,7 @@ TEST2_BUILD_DIR:=${BUILD_DIR}/${TEST2_NAME}
 TEST2_OBJECTS:=${patsubst %.c, ${TEST2_TEMP_DIR}/%.o, ${TEST2_FILENAMES}}
 
 
-test2: ${FOLDERS} ${TEST2_TEMP_DIR} ${TEST2_BUILD_DIR} ${TEST2_OBJECTS} ${TEST2_BUILD_DIR}/SDL3.dll
+test2: ${FOLDERS} ${TEST2_TEMP_DIR} ${TEST2_BUILD_DIR} ${TEST2_OBJECTS} ${TEST2_BUILD_DIR}/SDL3.dll ${TEST2_BUILD_DIR}/SDL3_image.dll ${TEST2_BUILD_DIR}/resources
 	# START: test2
 	gcc ${TEST2_OBJECTS} -o ${TEST2_BUILD_DIR}/test2.exe ${LDFLAGS}
 
@@ -93,7 +100,14 @@ ${TEST2_OBJECTS}: ${TEST2_TEMP_DIR}/%.o: ${TEST2_DIR}/%.c
 	gcc -c $< -o $@ ${CFLAGS}
 
 ${TEST2_BUILD_DIR}/SDL3.dll: 
-	cp -p ${SDL_LOCATION} $@
+	cp -p ${SDL_DLL_LOCATION} $@
+
+${TEST2_BUILD_DIR}/SDL3_image.dll:
+	cp -p ${SDLIMAGE_DLL_LOCATION} $@
+
+${TEST2_BUILD_DIR}/resources:
+	# START: $@
+	cp -r ${TEST2_DIR}/resources $@
 
 ${TEST2_TEMP_DIR} ${TEST2_BUILD_DIR}:
 	# START: $@
