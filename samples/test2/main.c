@@ -3,27 +3,32 @@
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3_image/SDL_image.h>
+#include <cglm/cglm.h>
 
-struct Player {
-	int x, y;
-	
-};
+const int TARGET_FPS = 60;
+const int MS_PER_FRAME = 1000/TARGET_FPS;
+
+int framesProcessed = 0;
+
+vec2 flowerPos = {10, 10};
+double speed = 1.0f;
+vec2 inputAxis = {0, 0};
 
 SDL_Window* gWindow = NULL;
 SDL_Surface* gScreenSurface = NULL;
 SDL_Renderer* gRenderer = NULL;
+const bool* gKeystates = NULL;
 
 SDL_Texture* flower = NULL;
 
 bool quit = false;
-	
+
 
 bool Init() {
 	bool success = SDL_Init(SDL_INIT_VIDEO);
 	if (!success) {
 		SDL_Log("Initialization failed! %s\n", SDL_GetError());
 	}
-	
 	
 	return success;
 }
@@ -108,7 +113,61 @@ void ProcessInput() {
 				quit = true;
 				break;
 			case SDL_EVENT_KEY_DOWN:
-				quit = true;
+				SDL_Log("Key down\n");
+				switch(e.key.scancode) {
+					case SDL_SCANCODE_0:
+						flowerPos[0] = 10;
+						flowerPos[1] = 10;
+						break;
+					case SDL_SCANCODE_W:
+						inputAxis[1] = 1;
+						break;
+					case SDL_SCANCODE_S:
+						inputAxis[1] = -1;
+						break;
+					case SDL_SCANCODE_A:
+						inputAxis[0] = -1;
+						break;
+					case SDL_SCANCODE_D:
+						inputAxis[0] = 1;
+						break;
+					case SDL_SCANCODE_ESCAPE:
+						quit = true;
+						break;
+				}
+				break;
+			case SDL_EVENT_KEY_UP:
+				SDL_Log("Key up\n");
+				switch(e.key.scancode) {
+					case SDL_SCANCODE_W:
+						if (gKeystates[SDL_SCANCODE_S]) {
+							inputAxis[1] = -1;
+						} else {
+							inputAxis[1] = 0;
+						}
+						break;
+					case SDL_SCANCODE_S:
+						if (gKeystates[SDL_SCANCODE_W]) {
+							inputAxis[1] = 1;
+						} else {
+							inputAxis[1] = 0;
+						}
+						break;
+					case SDL_SCANCODE_A:
+						if (gKeystates[SDL_SCANCODE_D]) {
+							inputAxis[0] = 1;
+						} else {
+							inputAxis[0] = 0;
+						}
+						break;
+					case SDL_SCANCODE_D:
+						if (gKeystates[SDL_SCANCODE_A]) {
+							inputAxis[0] = -1;
+						} else {
+							inputAxis[0] = 0;
+						}
+						break;
+				}
 				break;
 			case SDL_EVENT_MOUSE_MOTION:
 				break;
@@ -119,8 +178,26 @@ void ProcessInput() {
 	}
 }
 
-void Update() {
-
+void Update(Uint64 deltaMS) {
+	
+	
+	double delta = deltaMS/1000.0f;
+	
+	vec2 invertYAxis = {1, -1};
+	vec2 invertedAxis;
+	glm_vec2_mul(inputAxis, invertYAxis, invertedAxis);
+	
+	vec2 finalPos;
+	vec2 flowerSpeed;
+	vec2 factoredFlowerSpeed;
+	glm_vec2_scale(invertedAxis, speed, flowerSpeed);
+	glm_vec2_scale(flowerSpeed, delta, factoredFlowerSpeed);
+	glm_vec2_add(flowerPos, flowerSpeed, finalPos);
+	glm_vec2_copy(finalPos, flowerPos);
+	
+	framesProcessed ++;
+	if (SDL_GetTicks() > 1000)
+	SDL_Log("FPS: %d\n", framesProcessed/((SDL_GetTicks())/1000));
 }
 
 void Render() {
@@ -135,18 +212,20 @@ void Render() {
 	SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
 	SDL_RenderClear(gRenderer);
 	
-	SDL_FRect dstRect = {10, 10, 32, 32};
+	SDL_FRect dstRect = {flowerPos[0], flowerPos[1], 32, 32};
 	SDL_RenderTexture(gRenderer, flower, NULL, &dstRect);
+	
 	/*
 	SDL_SetRenderDrawColor(gRenderer, 0,0,0,0xFF);
 	SDL_FRect rect = {10, 10, 20, 20};
 	SDL_RenderFillRect(gRenderer, &rect);
 	*/
+	
 	SDL_RenderPresent(gRenderer);
 }
 
 void BeforeLoop() {
-	// Load flower image
+	/// Load flower image
 	char imagePath[512];
 	snprintf(imagePath, sizeof(imagePath), "%s%s", SDL_GetBasePath(),"resources\\flower.png");
 	SDL_Surface* tempSurf = IMG_Load(imagePath);
@@ -156,14 +235,30 @@ void BeforeLoop() {
 	flower = SDL_CreateTextureFromSurface(gRenderer, tempSurf);
 	SDL_DestroySurface(tempSurf);
 	
+	/// Set gKeystates
+	gKeystates = SDL_GetKeyboardState(NULL);
 }
 
 void MainLoop() {
 
-	while (!quit) {	
+	Uint64 prevTime = SDL_GetTicks();
+	Uint64 unprocessedTime = 0;
+
+	while (!quit) {
+		
+		Uint64 newTime = SDL_GetTicks();
+		unprocessedTime += newTime - prevTime;
+		prevTime = newTime;
+		
 		ProcessInput();
-		Update();
+		
+		while(unprocessedTime > MS_PER_FRAME) {
+			Update(MS_PER_FRAME);
+			unprocessedTime = glm_clamp(unprocessedTime-MS_PER_FRAME, 0, 1000);
+		}
+		
 		Render();
+
 	}
 	
 }
