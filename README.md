@@ -1,4 +1,4 @@
-# YAGE: Yet Another Game Engine
+# AGE: (Yet) Another Game Engine
 
 This is personal project made in order to learn and use SDL3 and Makefiles.
 
