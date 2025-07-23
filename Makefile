@@ -1,6 +1,7 @@
 BUILD_DIR:=build
 TEMP_DIR:=temp
 FOLDERS:= ${TEMP_DIR} ${BUILD_DIR}
+GCC := g++
 
 ARCH:=$(shell ./tools/arch.exe)
 
@@ -29,7 +30,7 @@ HELLO_OBJECTS:=${patsubst %.c, ${HELLO_TEMP_DIR}/%.o, ${HELLO_FILENAMES}}
 
 hello: ${FOLDERS} ${HELLO_TEMP_DIR} ${HELLO_BUILD_DIR} ${HELLO_OBJECTS} ${HELLO_BUILD_DIR}/SDL3.dll
 	# START: $@
-	gcc ${HELLO_OBJECTS} -o ${BUILD_DIR}/${HELLO_NAME}/hello.exe ${LDFLAGS}
+	${GCC} ${HELLO_OBJECTS} -o ${BUILD_DIR}/${HELLO_NAME}/hello.exe ${LDFLAGS}
 
 ${HELLO_TEMP_DIR} ${HELLO_BUILD_DIR}:
 	# START: $@
@@ -37,7 +38,7 @@ ${HELLO_TEMP_DIR} ${HELLO_BUILD_DIR}:
 
 ${HELLO_OBJECTS}: ${TEMP_DIR}/${HELLO_NAME}/%.o: ${HELLO_DIR}/%.c
 	# START: $@
-	gcc -c $< -o $@ ${CFLAGS}
+	${GCC} -c $< -o $@ ${CFLAGS}
 
 ${HELLO_BUILD_DIR}/SDL3.dll:
 	# START: $@
@@ -61,11 +62,11 @@ TEST1_OBJECTS:=${patsubst %.c, ${TEST1_TEMP_DIR}/%.o, ${TEST1_FILENAMES}}
 
 test1: ${FOLDERS} ${TEST1_TEMP_DIR} ${TEST1_BUILD_DIR} ${TEST1_BUILD_DIR}/resources ${TEST1_OBJECTS} ${TEST1_BUILD_DIR}/SDL3.dll
 	# START: test1
-	gcc ${TEST1_OBJECTS} -o ${TEST1_BUILD_DIR}/test1.exe ${LDFLAGS}
+	${GCC} ${TEST1_OBJECTS} -o ${TEST1_BUILD_DIR}/test1.exe ${LDFLAGS}
 
 ${TEST1_OBJECTS}: ${TEST1_TEMP_DIR}/%.o: ${TEST1_DIR}/%.c
 	# START: test1 main.o
-	gcc -c $< -o $@ ${CFLAGS}
+	${GCC} -c $< -o $@ ${CFLAGS}
 
 ${TEST1_BUILD_DIR}/resources:
 	# START: test1_binaries
@@ -95,11 +96,11 @@ TEST2_OBJECTS:=${patsubst %.c, ${TEST2_TEMP_DIR}/%.o, ${TEST2_FILENAMES}}
 
 test2: ${FOLDERS} ${TEST2_TEMP_DIR} ${TEST2_BUILD_DIR} ${TEST2_OBJECTS} ${TEST2_BUILD_DIR}/SDL3.dll ${TEST2_BUILD_DIR}/SDL3_image.dll ${TEST2_BUILD_DIR}/resources
 	# START: test2
-	gcc ${TEST2_OBJECTS} -o ${TEST2_BUILD_DIR}/test2.exe ${LDFLAGS}
+	${GCC} ${TEST2_OBJECTS} -o ${TEST2_BUILD_DIR}/test2.exe ${LDFLAGS}
 
 ${TEST2_OBJECTS}: ${TEST2_TEMP_DIR}/%.o: ${TEST2_DIR}/%.c
 	# START: test2 main.o
-	gcc -c $< -o $@ ${CFLAGS}
+	${GCC} -c $< -o $@ ${CFLAGS}
 
 ${TEST2_BUILD_DIR}/SDL3.dll: 
 	cp -p ${SDL_DLL_LOCATION} $@
