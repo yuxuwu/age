@@ -1,9 +1,11 @@
-#include <stdio.h>
+#include <iostream>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3_image/SDL_image.h>
 #include <cglm/cglm.h>
+
+using namespace std;
 
 const int TARGET_FPS = 60;
 const int MS_PER_FRAME = 1000/TARGET_FPS;
@@ -267,9 +269,9 @@ int main(int argc, char** argv) {
 	bool initSuccess = Init();
 
 	if (initSuccess) {
-		printf("SDL3 Initialized Successfully!\n");
+		SDL_Log("SDL3 Init Success.\n");
 	} else {
-		printf("SDL3 Initialization failed.\n");
+		cerr << ("SDL3 Initialization failed.") << endl;
 		return -1;
 	}
 	
