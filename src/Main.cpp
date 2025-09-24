@@ -3,6 +3,7 @@
 #include <sol/sol.hpp>
 #include <entt/entt.hpp>
 #include <SDL3/SDL.h>
+#include <glad/glad.h>
 
 using namespace std;
 
@@ -37,13 +38,51 @@ int main (int argc, char** argv) {
     }
 
     /// Test SDL3
-    SDL_Init(SDL_INIT_VIDEO);
-    SDL_Window* window = SDL_CreateWindow("SDL Test Window", 640, 480, 0);
-    SDL_Delay(1000);
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
+        cout << "Error, unable to initialize SDL" << endl;
+    }
+    
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    
+    SDL_Window* window = SDL_CreateWindow("SDL Test Window", 640, 480, SDL_WINDOW_OPENGL);
+    if (window == NULL) {
+        cout << "Failed to create SDL window" << endl;
+        SDL_Quit();
+        return -1;
+    }
+    
+    /// Test OpenGL
+    SDL_GLContext context = SDL_GL_CreateContext(window);
+    if (context == NULL) {
+        cout << "Failed to create SDL GL Context" << endl;
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return -1;
+    }
+
+    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
+        cout << "Failed to initialize glad" << endl;
+        
+        SDL_GL_DestroyContext(context);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return -1;
+    } 
+
+    glViewport(0, 0, 640, 480);
+    GLenum error = glGetError();
+
+    if (error == GL_NO_ERROR) {
+        cout << "OpenGL function glViewport() was able to be called" << endl;
+    } else {
+        cout << "OpenGL error: " << error << endl;
+    }
+
+    SDL_GL_DestroyContext(context);
     SDL_DestroyWindow(window);
     SDL_Quit();
     
-    /// Test OpenGL
-
     return 0;
 }
