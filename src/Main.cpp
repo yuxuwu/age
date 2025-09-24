@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <sol/sol.hpp>
 #include <entt/entt.hpp>
+#include <SDL3/SDL.h>
 
 using namespace std;
 
@@ -36,5 +37,13 @@ int main (int argc, char** argv) {
     }
 
     /// Test SDL3
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Window* window = SDL_CreateWindow("SDL Test Window", 640, 480, 0);
+    SDL_Delay(1000);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    
     /// Test OpenGL
+
+    return 0;
 }
