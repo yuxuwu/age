@@ -1,5 +1,6 @@
 #include <iostream>
 #include <glm/glm.hpp>
+#include <sol/sol.hpp>
 
 using namespace std;
 
@@ -12,7 +13,11 @@ int main (int argc, char** argv) {
     myVec += myOtherVec;
     cout << "myVec: " << myVec.x << ", " << myVec.y << endl;
     
-    /// Test Lua
+    /// Test Sol/Lua
+    sol::state lua;
+    lua.open_libraries(sol::lib::base);
+    lua.script("print('bark, bark, bark')");
+
     /// Test entt
     /// Test SDL3
     /// Test OpenGL
