@@ -97,19 +97,67 @@ void Game::Quit()
 
 void Game::Load()
 {
-    /// load triangle vertex data to the GPU
-    unsigned int vbo;
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    //======================================================================================
+    // Triangle
+    //======================================================================================
+    // link vertex attributes
+    glGenVertexArrays(1, &vaoTri);
+    glBindVertexArray(vaoTri);
 
+    // load triangle vertex data to the GPU
+    unsigned int vboTri;
+    glGenBuffers(1, &vboTri);
+    glBindBuffer(GL_ARRAY_BUFFER, vboTri);
     glBufferData(
-        GL_ARRAY_BUFFER, 
-        sizeof(triangleVerts), 
-        triangleVerts, 
+        GL_ARRAY_BUFFER,
+        sizeof(triangleVerts),
+        triangleVerts,
         GL_STATIC_DRAW
     );
+    // specify vertex attributes
+    glVertexAttribPointer(
+        0, // location 
+        3, // num elements
+        GL_FLOAT, // element type
+        GL_FALSE, // normalize element values
+        3 * sizeof(float), // stride
+        (void*)0 // starting location from beginning in buffer
+    );
+    glEnableVertexAttribArray(0);
 
-    /// load vertex shader
+    //======================================================================================
+    // Rectangle
+    //======================================================================================
+    glGenVertexArrays(1, &vaoRect);
+    glBindVertexArray(vaoRect);
+
+    unsigned int vboRect;
+    glGenBuffers(1, &vboRect);
+    glBindBuffer(GL_ARRAY_BUFFER, vboRect);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(rectangleVerts),
+        rectangleVerts,
+        GL_STATIC_DRAW
+    );
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        3 * sizeof(float),
+        (void*)0
+    );
+    
+    glGenBuffers(1, &eboRect);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboRect);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicies), indicies, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+
+    //======================================================================================
+    // Load Shaders
+    //======================================================================================
     unsigned int vertexShader;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
     char* vertSource = FileReader::createCharBufferFromFile("./assets/glsl/vert/basic.vert");
@@ -164,28 +212,6 @@ void Game::Load()
     glDeleteShader(vertexShader);
     glDeleteShader(fragShader);
 
-    /// link vertex attributes
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        sizeof(triangleVerts),
-        triangleVerts,
-        GL_STATIC_DRAW
-    );
-    glVertexAttribPointer(
-        0, // location 
-        3, // num elements
-        GL_FLOAT, // element type
-        GL_FALSE, // normalize element values
-        3 * sizeof(float), // stride
-        (void*)0 // starting location from beginning in buffer
-    );
-    glEnableVertexAttribArray(0);
-
-
 }
 
 void Game::ProcessInput()
@@ -224,8 +250,13 @@ void Game::Render()
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(shaderProgram);
-    glBindVertexArray(vao);
+    
+    /*
+    glBindVertexArray(vaoTri);
     glDrawArrays(GL_TRIANGLES, 0, 3);
+    */
+   glBindVertexArray(vaoRect);
+   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     SDL_GL_SwapWindow(window);
 }

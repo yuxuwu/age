@@ -28,14 +28,32 @@ private:
 
     bool running = false;
 
-    // temporary vars for test scene
+    /// temporary vars for test scene
+    // triangle
     const float triangleVerts[9] = {
         -0.5f, -0.5f,  0.0f,
          0.5f, -0.5f,  0.0f,
          0.0f,  0.5f,  0.0f
     };
+    unsigned int vaoTri;
+
+    // rectangle
+    const float rectangleVerts[12] = {
+         0.5f,  0.5f,  0.0f, // top right
+         0.5f, -0.5f,  0.0f, // bottom right
+        -0.5f, -0.5f,  0.0f, // bottom left
+        -0.5f,  0.5f,  0.0f  // top left
+    };
+    const unsigned int indicies[6] = {
+        0, 1, 3,
+        1, 2, 3
+    };
+    unsigned int vaoRect;
+    unsigned int eboRect;
+    
+    // shaders
     unsigned int shaderProgram;
-    unsigned int vao;
+    
 };
 
 #endif
