@@ -28,6 +28,8 @@ private:
 
     bool running = false;
 
+    bool wireframe = false;
+
     /// temporary vars for test scene
     // triangle
     const float triangleVerts[9] = {

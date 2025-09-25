@@ -124,6 +124,7 @@ void Game::Load()
         (void*)0 // starting location from beginning in buffer
     );
     glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
 
     //======================================================================================
     // Rectangle
@@ -154,6 +155,7 @@ void Game::Load()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicies), indicies, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
 
     //======================================================================================
     // Load Shaders
@@ -227,6 +229,15 @@ void Game::ProcessInput()
                         running = false;
                         break;
                     }
+                    case SDLK_W: {
+                        wireframe = !wireframe;
+                        if (wireframe) {
+                            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                        } else {
+                            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                        }
+                        
+                    }
                 }
                 break;
             }
@@ -250,13 +261,13 @@ void Game::Render()
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(shaderProgram);
-    
+
     /*
     glBindVertexArray(vaoTri);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     */
-   glBindVertexArray(vaoRect);
-   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(vaoRect);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     SDL_GL_SwapWindow(window);
 }
