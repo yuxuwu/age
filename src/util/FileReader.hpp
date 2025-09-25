@@ -3,9 +3,8 @@
 
 #include <string>
 
-class FileReader {
-public:
-    static char* createCharBufferFromFile(std::string filePath);
+namespace FileReader {
+    char* createCharBufferFromFile(std::string filePath);
 };
 
 #endif

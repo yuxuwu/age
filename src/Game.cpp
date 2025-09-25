@@ -1,5 +1,7 @@
 #include "Game.hpp"
+
 #include "util/FileReader.hpp"
+#include "util/Shader.hpp"
 
 #include <glad/glad.h>
 
@@ -178,61 +180,69 @@ void Game::Load()
     glBindVertexArray(0);
 
     //======================================================================================
+    // 5.8 Two Triangles
+    //======================================================================================
+    // Triangle 1
+    glGenVertexArrays(1, &vaoTri1);
+    glBindVertexArray(vaoTri1);
+
+    unsigned int vboTri1;
+    glGenBuffers(1, &vboTri1);
+    glBindBuffer(GL_ARRAY_BUFFER, vboTri1);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(triangle1),
+        triangle1,
+        GL_STATIC_DRAW
+    );
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        3 * sizeof(float),
+        (void*)0
+    );
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+
+    // Triangle 2
+    glGenVertexArrays(1, &vaoTri2);
+    glBindVertexArray(vaoTri2);
+
+    unsigned int vboTri2;
+    glGenBuffers(1, &vboTri2);
+    glBindBuffer(GL_ARRAY_BUFFER, vboTri2);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(triangle2),
+        triangle2,
+        GL_STATIC_DRAW
+    );
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        3 * sizeof(float),
+        (void*)0
+    );
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+
+    //======================================================================================
     // Load Shaders
     //======================================================================================
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    char* vertSource = FileReader::createCharBufferFromFile("./assets/glsl/vert/basic.vert");
-    if (vertSource == NULL) {
-        cout << "Failed to read Vertex Shader file" << endl;
-        return;
-    }
+    unsigned int basicVertShader = Shader::createVertexShader("./assests/glsl/vert/basic.vert");
+    unsigned int basicFragShader = Shader::createFragmentShader("./assets/glsl/frag/basic.frag");
+    unsigned int yellowFragShader = Shader::createFragmentShader("./assets/glsl/frag/yellow.frag");
 
-    glShaderSource(vertexShader, 1, &vertSource, NULL);
-    glCompileShader(vertexShader);
-    delete[] vertSource;
+    basicProgram = Shader::linkVertFrag(basicVertShader, basicFragShader);
+    yellowProgram = Shader::linkVertFrag(basicVertShader, yellowFragShader);
 
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        cout << "Error: Vertex Shader failed to compile: " << infoLog << endl;
-    }
-
-    /// load frag shader
-    unsigned int fragShader;
-    fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-    char* fragSource = FileReader::createCharBufferFromFile("./assets/glsl/frag/basic.frag");
-    if (fragSource == NULL) {
-        cout << "Failed to read Frag Shader file" << endl;
-        return;
-    }
-
-    glShaderSource(fragShader, 1, &fragSource, NULL);
-    glCompileShader(fragShader);
-    delete[] fragSource;
-
-    glGetShaderiv(fragShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(fragShader, 512, NULL, infoLog);
-        cout << "Error: Frag Shader failed to compiled: " << infoLog << endl;
-    }
-
-    /// link shader program
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragShader);
-    glLinkProgram(shaderProgram);
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        cout << "Error: Shader Program failed to link" << endl;
-    }
-
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragShader);
+    glDeleteShader(yellowFragShader);
+    glDeleteShader(basicVertShader);
+    glDeleteShader(basicFragShader);
 
 }
 
@@ -286,24 +296,44 @@ void Game::Render()
     glClear(GL_COLOR_BUFFER_BIT);
 
 
-    /// Game rendering
-    /*
+    //======================================================================================
+    // Scene Rendering
+    //======================================================================================
+    
+    /* 
+    // Default Triangle
     glBindVertexArray(vaoTri);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     */
-    glUseProgram(shaderProgram);
+
+    /*
+    // Element Rect
     glBindVertexArray(vaoRect);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    */
 
+    // Twin Triangle
+    glUseProgram(basicProgram);
+    glBindVertexArray(vaoTri1);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glUseProgram(yellowProgram);
+    glBindVertexArray(vaoTri2);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
         
-    /// ImGui Rendering
-    bool showDemoWindow = true;
-    ImGui::ShowDemoWindow(&showDemoWindow);
-    
+    //======================================================================================
+    // ImGui Rendering
+    //======================================================================================
+    /*
+    ImGui::ShowDemoWindow();
+    */
+
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 
+    //======================================================================================
+    // END
+    //======================================================================================
     /// Finally, swap render buffers
     SDL_GL_SwapWindow(window);
 }

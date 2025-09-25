@@ -55,9 +55,25 @@ private:
     };
     unsigned int vaoRect;
     unsigned int eboRect;
+
+    // 5.8.1 Two triangles
+    const float triangle1[9] = {
+        -0.5f,  0.5f,  0.0f, // left top
+        -0.5f,  0.0f,  0.0f, // left left
+         0.0f,  0.0f,  0.0f  // left right
+    };
+    const float triangle2[9] = {
+         0.5f,  0.5f,  0.0f, // right top
+         0.0f,  0.0f,  0.0f, // right left
+         0.5f,  0.0f,  0.0f  // right right
+    };
+    unsigned int vaoTri1;
+    unsigned int vaoTri2;
+
     
     // shaders
-    unsigned int shaderProgram;
+    unsigned int basicProgram;
+    unsigned int yellowProgram;
     
 };
 

@@ -22,7 +22,8 @@ add_subdirectory(thirdparty/imgui_1_92_3)
 add_executable(age-engine 
     src/Main.cpp 
     src/Game.cpp 
-    src/util/FileReader.cpp)
+    src/util/FileReader.cpp
+    src/util/Shader.cpp)
 
 target_link_libraries(age-engine PRIVATE glm sol2 entt SDL3::SDL3 glad_gl_3_3 imgui)
 
