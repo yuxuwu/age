@@ -236,13 +236,20 @@ void Game::Load()
     unsigned int basicVertShader = Shader::createVertexShader("./assests/glsl/vert/basic.vert");
     unsigned int basicFragShader = Shader::createFragmentShader("./assets/glsl/frag/basic.frag");
     unsigned int yellowFragShader = Shader::createFragmentShader("./assets/glsl/frag/yellow.frag");
+    unsigned int colorOutVertShader = Shader::createVertexShader("./assets/glsl/vert/colorOut.vert");
+    unsigned int colorInFragShader = Shader::createFragmentShader("./assets/glsl/frag/colorIn.frag");
 
     basicProgram = Shader::linkVertFrag(basicVertShader, basicFragShader);
     yellowProgram = Shader::linkVertFrag(basicVertShader, yellowFragShader);
+    vertColorProgram = Shader::linkVertFrag(colorOutVertShader, colorInFragShader);
+
+    uniformOurColorLoc = glGetUniformLocation(vertColorProgram, "ourColor");
 
     glDeleteShader(yellowFragShader);
     glDeleteShader(basicVertShader);
     glDeleteShader(basicFragShader);
+    glDeleteShader(colorOutVertShader);
+    glDeleteShader(colorInFragShader);
 
 }
 
@@ -287,6 +294,8 @@ void Game::ProcessInput()
 
 void Game::Update(const Uint64& deltaTime)
 {
+    float timeInSeconds = SDL_GetTicks()/1000.0f;
+    greenValue = sin(timeInSeconds) / 2.0f + 0.5f;
 }
 
 void Game::Render()
@@ -312,6 +321,7 @@ void Game::Render()
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     */
 
+    /*
     // Twin Triangle
     glUseProgram(basicProgram);
     glBindVertexArray(vaoTri1);
@@ -319,7 +329,14 @@ void Game::Render()
     glUseProgram(yellowProgram);
     glBindVertexArray(vaoTri2);
     glDrawArrays(GL_TRIANGLES, 0, 3);
-        
+    */
+
+    // Vert Out Color
+    glUseProgram(vertColorProgram);
+    glUniform4f(uniformOurColorLoc, 0.0f, greenValue, 0.0f, 1.0f);
+    glBindVertexArray(vaoTri);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
     //======================================================================================
     // ImGui Rendering
     //======================================================================================

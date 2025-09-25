@@ -74,6 +74,11 @@ private:
     // shaders
     unsigned int basicProgram;
     unsigned int yellowProgram;
+    unsigned int vertColorProgram;
+
+    // vars
+    int uniformOurColorLoc;
+    float greenValue;
     
 };
 
