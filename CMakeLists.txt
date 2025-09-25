@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(BIN "bin")
 set(LIB "lib")
+set(ASSETS "assets")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${BIN})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${LIB})
@@ -17,6 +18,14 @@ add_subdirectory(thirdparty/entt_3_15_7)
 add_subdirectory(thirdparty/sdl_3_2_22 EXCLUDE_FROM_ALL)
 add_subdirectory(thirdparty/glad_gl_3_3)
 
-add_executable(age-engine src/Main.cpp)
+add_executable(age-engine 
+    src/Main.cpp 
+    src/Game.cpp 
+    src/util/FileReader.cpp)
 
 target_link_libraries(age-engine PRIVATE glm sol2 entt SDL3::SDL3 glad_gl_3_3)
+
+add_custom_command(TARGET age-engine POST_BUILD 
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/${ASSETS}
+        $<TARGET_FILE_DIR:age-engine>/${ASSETS})
