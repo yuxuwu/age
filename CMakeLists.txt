@@ -15,15 +15,16 @@ add_subdirectory(thirdparty/glm_1_0_1)
 add_subdirectory(thirdparty/lua_5_4_8)
 add_subdirectory(thirdparty/sol2_4_0_0)
 add_subdirectory(thirdparty/entt_3_15_7)
-add_subdirectory(thirdparty/sdl_3_2_22 EXCLUDE_FROM_ALL)
+add_subdirectory(thirdparty/sdl_3_2_22)
 add_subdirectory(thirdparty/glad_gl_3_3)
+add_subdirectory(thirdparty/imgui_1_92_3)
 
 add_executable(age-engine 
     src/Main.cpp 
     src/Game.cpp 
     src/util/FileReader.cpp)
 
-target_link_libraries(age-engine PRIVATE glm sol2 entt SDL3::SDL3 glad_gl_3_3)
+target_link_libraries(age-engine PRIVATE glm sol2 entt SDL3::SDL3 glad_gl_3_3 imgui)
 
 add_custom_command(TARGET age-engine POST_BUILD 
     COMMAND ${CMAKE_COMMAND} -E copy_directory

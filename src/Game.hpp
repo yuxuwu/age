@@ -20,15 +20,18 @@ private:
     void Render();
 
 private:
-    SDL_Window* window;
-    SDL_GLContext context;
-
     const Uint64 targetFPS = 140;
     const Uint64 msPerFrame = 1000/140;
+    const Uint64 windowWidth = 1280;
+    const Uint64 windowHeight = 720;
 
+    SDL_Window* window;
+    SDL_GLContext context;
+    
     bool running = false;
-
     bool wireframe = false;
+
+    
 
     /// temporary vars for test scene
     // triangle

@@ -3,13 +3,17 @@
 
 #include <glad/glad.h>
 
+#include <imgui.h>
+#include <imgui_impl_sdl3.h>
+#include <imgui_impl_opengl3.h>
+
 #include <iostream>
 
 using namespace std;
 
 bool Game::Init()
 {
-        /// Initialize SDL
+    /// Initialize SDL
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         cout << "Error, unable to initialize SDL" << endl;
         return false;
@@ -19,7 +23,7 @@ bool Game::Init()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     
-    window = SDL_CreateWindow("SDL Test Window", 640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS);
+    window = SDL_CreateWindow("SDL Test Window", windowWidth, windowHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS);
     if (window == NULL) {
         cout << "Failed to create SDL window" << endl;
         SDL_Quit();
@@ -45,7 +49,7 @@ bool Game::Init()
         return false;
     } 
 
-    glViewport(0, 0, 640, 480);
+    glViewport(0, 0, windowWidth, windowHeight);
     GLenum error = glGetError();
 
     if (error != GL_NO_ERROR) {
@@ -56,6 +60,18 @@ bool Game::Init()
     cout << "Succesfully initialized game" << endl;
     cout << "Target FPS: " << targetFPS << endl;
     cout << "MS per frame: " << msPerFrame << endl;
+
+    /// Initialize Imgui
+    const char* glsl_version = "#version 330 core";
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    ImGui::StyleColorsDark();
+    
+    ImGui_ImplSDL3_InitForOpenGL(window, context);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+
 
     return true;
 }
@@ -72,6 +88,10 @@ void Game::Run()
     Uint64 lag = 0;
 
     while(running) {
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL3_NewFrame();
+        ImGui::NewFrame();
+
         Uint64 currentTicks = SDL_GetTicks();
         Uint64 elapsedTicks = currentTicks - previousTicks;
         previousTicks = currentTicks;
@@ -221,6 +241,10 @@ void Game::ProcessInput()
     SDL_Event event{};
     while (SDL_PollEvent(&event)) {
         
+        // Process Imgui Events
+        ImGui_ImplSDL3_ProcessEvent(&event);
+
+        // Handle all other events
         switch (event.type) {
             // Keyboard events
             case SDL_EVENT_KEY_DOWN: {
@@ -257,17 +281,29 @@ void Game::Update(const Uint64& deltaTime)
 
 void Game::Render()
 {
+    /// Clear
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glUseProgram(shaderProgram);
 
+    /// Game rendering
     /*
     glBindVertexArray(vaoTri);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     */
+    glUseProgram(shaderProgram);
     glBindVertexArray(vaoRect);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+        
+    /// ImGui Rendering
+    bool showDemoWindow = true;
+    ImGui::ShowDemoWindow(&showDemoWindow);
+    
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+
+    /// Finally, swap render buffers
     SDL_GL_SwapWindow(window);
 }

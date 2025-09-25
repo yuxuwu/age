@@ -1,9 +1,11 @@
 .vscode/
 
-*.vcxproj
-CMakeCache.txt
-*.vcxproj.filters
-cmake_install.cmake
-*.sln
+**/*.vcxproj
+**/CMakeCache.txt
+**/*.vcxproj.filters
+**/cmake_install.cmake
+**/*.sln
 bin/
 build/
+
+**/imgui.ini
