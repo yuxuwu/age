@@ -1,6 +1,6 @@
 #include "Shader.hpp"
 
-#include "FileReader.hpp"
+#include "../util/FileReader.hpp"
 
 #include <glad/glad.h>
 #include <iostream>
@@ -77,3 +77,4 @@ unsigned int Shader::linkVertFrag(const unsigned int &vert, const unsigned int &
 
     return program;
 }
+

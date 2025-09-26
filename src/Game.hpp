@@ -1,6 +1,8 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include "shader/ShaderProgram.hpp"
+
 #include <SDL3/SDL.h>
 
 class Game {
@@ -70,13 +72,37 @@ private:
     unsigned int vaoTri1;
     unsigned int vaoTri2;
 
+    // colored triangle
+    const float coloredTriangle[18] = {
+        // verts             // colors
+        -0.5f, -0.5f,  0.0f, 1.0f, 0.0f, 0.0f,
+         0.5f, -0.5f,  0.0f, 0.0f, 1.0f, 0.0f,
+         0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f
+    };
+    unsigned int vaoColorTri;
+
+    // colored textured rect
+    const float coloredTexturedRect[32] = {
+        // positions      // colors         // texture coords
+         0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // top left
+    };
+    unsigned int vaoColorTexRect;
     
     // shaders
-    unsigned int basicProgram;
-    unsigned int yellowProgram;
-    unsigned int vertColorProgram;
+    ShaderProgram basicProgram;
+    ShaderProgram yellowProgram;
+    ShaderProgram vertColorProgram;
+    ShaderProgram colorPerVertexProgram;
+    ShaderProgram colorTexProgram;
 
-    // vars
+    // textures
+    unsigned int wallTexture;
+    unsigned int faceTexture;
+
+    // uniform vars
     int uniformOurColorLoc;
     float greenValue;
     

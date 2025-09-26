@@ -1,9 +1,11 @@
 #include "Game.hpp"
 
 #include "util/FileReader.hpp"
-#include "util/Shader.hpp"
+#include "shader/Shader.hpp"
 
 #include <glad/glad.h>
+
+#include <SDL3_image/SDL_image.h>
 
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
@@ -231,26 +233,165 @@ void Game::Load()
     glBindVertexArray(0);
 
     //======================================================================================
+    // Colored Triangle
+    //======================================================================================
+    glGenVertexArrays(1, &vaoColorTri);
+    glBindVertexArray(vaoColorTri);
+
+    unsigned int vboColorTri;
+    glGenBuffers(1, &vboColorTri);
+    glBindBuffer(GL_ARRAY_BUFFER, vboColorTri);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(coloredTriangle),
+        coloredTriangle,
+        GL_STATIC_DRAW
+    );
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        6 * sizeof(float),
+        (void*)0
+    );
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        6 * sizeof(float),
+        (void*)(3 * sizeof(float))
+    );
+    glEnableVertexAttribArray(1);
+    glBindVertexArray(0);
+
+    //======================================================================================
+    // Colored, Textured, Rect
+    //======================================================================================
+    glGenVertexArrays(1, &vaoColorTexRect);
+    glBindVertexArray(vaoColorTexRect);
+    
+    unsigned int vboColorTexRect;
+    glGenBuffers(1, &vboColorTexRect);
+    glBindBuffer(GL_ARRAY_BUFFER, vboColorTexRect);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(coloredTexturedRect), coloredTexturedRect, GL_STATIC_DRAW);
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(float),
+        (void*)0
+    );
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(float),
+        (void*)(3*sizeof(float))
+    );
+    glVertexAttribPointer(
+        2,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(float),
+        (void*)(6*sizeof(float))
+    );
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboRect);
+    glBindVertexArray(0);
+
+    //======================================================================================
     // Load Shaders
     //======================================================================================
-    unsigned int basicVertShader = Shader::createVertexShader("./assests/glsl/vert/basic.vert");
-    unsigned int basicFragShader = Shader::createFragmentShader("./assets/glsl/frag/basic.frag");
-    unsigned int yellowFragShader = Shader::createFragmentShader("./assets/glsl/frag/yellow.frag");
-    unsigned int colorOutVertShader = Shader::createVertexShader("./assets/glsl/vert/colorOut.vert");
-    unsigned int colorInFragShader = Shader::createFragmentShader("./assets/glsl/frag/colorIn.frag");
+    unsigned int basicVert = Shader::createVertexShader("./assets/glsl/vert/basic.vert");
+    unsigned int basicFrag = Shader::createFragmentShader("./assets/glsl/frag/basic.frag");
+    unsigned int yellowFrag = Shader::createFragmentShader("./assets/glsl/frag/yellow.frag");
+    unsigned int colorOutVert = Shader::createVertexShader("./assets/glsl/vert/colorOut.vert");
+    unsigned int colorInFrag = Shader::createFragmentShader("./assets/glsl/frag/colorIn.frag");
+    unsigned int vertexColorVert = Shader::createVertexShader("./assets/glsl/vert/vertexColor.vert");
+    unsigned int colorTexVert = Shader::createVertexShader("./assets/glsl/vert/colorTex.vert");
+    unsigned int colorTexFrag = Shader::createFragmentShader("./assets/glsl/frag/colorTex.frag");
 
-    basicProgram = Shader::linkVertFrag(basicVertShader, basicFragShader);
-    yellowProgram = Shader::linkVertFrag(basicVertShader, yellowFragShader);
-    vertColorProgram = Shader::linkVertFrag(colorOutVertShader, colorInFragShader);
+    basicProgram = ShaderProgram(basicVert, basicFrag);
+    yellowProgram = ShaderProgram(basicVert, yellowFrag);
+    vertColorProgram = ShaderProgram(colorOutVert, colorInFrag);
+    colorPerVertexProgram = ShaderProgram(vertexColorVert, colorInFrag);
+    colorTexProgram = ShaderProgram(colorTexVert, colorTexFrag);
 
-    uniformOurColorLoc = glGetUniformLocation(vertColorProgram, "ourColor");
+    glDeleteShader(yellowFrag);
+    glDeleteShader(basicVert);
+    glDeleteShader(basicFrag);
+    glDeleteShader(colorOutVert);
+    glDeleteShader(colorInFrag);
+    glDeleteShader(colorTexVert);
+    glDeleteShader(colorTexFrag);
 
-    glDeleteShader(yellowFragShader);
-    glDeleteShader(basicVertShader);
-    glDeleteShader(basicFragShader);
-    glDeleteShader(colorOutVertShader);
-    glDeleteShader(colorInFragShader);
+    //======================================================================================
+    // Load Images
+    //======================================================================================
+    // Open SDL image
+    SDL_Surface* wallSurface = IMG_Load("./assets/images/container.jpg");
+    SDL_Surface* awesomeSurface = IMG_Load("./assets/images/awesomeface.png");
+    if (wallSurface == NULL) {
+        cout << "Failed to load wall image: " << SDL_GetError() << endl;
+    }
+    if (awesomeSurface == NULL) {
+        cout << "Failed to load face image: " << SDL_GetError() << endl;
+    }
+    SDL_Surface* convertedWallSurface = SDL_ConvertSurface(wallSurface, SDL_PIXELFORMAT_RGB24);
+    SDL_Surface* convertedAwesomeSurface = SDL_ConvertSurface(awesomeSurface, SDL_PIXELFORMAT_RGB24);
+    SDL_DestroySurface(wallSurface);
+    SDL_DestroySurface(awesomeSurface);
 
+    // Generate OpenGL texture
+    glGenTextures(1, &wallTexture);
+    glBindTexture(GL_TEXTURE_2D, wallTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(
+        GL_TEXTURE_2D, 
+        0, 
+        GL_RGB, 
+        convertedWallSurface->w, convertedWallSurface->h, 
+        0, 
+        GL_RGB, 
+        GL_UNSIGNED_BYTE, 
+        convertedWallSurface->pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    SDL_DestroySurface(convertedWallSurface);
+
+    glGenTextures(1, &faceTexture);
+    glBindTexture(GL_TEXTURE_2D, faceTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGB,
+        convertedAwesomeSurface->w, convertedAwesomeSurface->h,
+        0,
+        GL_RGB,
+        GL_UNSIGNED_BYTE,
+        convertedAwesomeSurface->pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    SDL_DestroySurface(convertedAwesomeSurface);
+
+    colorTexProgram.use();
+    colorTexProgram.setInt("texture1", 0);
+    colorTexProgram.setInt("texture2", 1);
 }
 
 void Game::ProcessInput()
@@ -294,7 +435,7 @@ void Game::ProcessInput()
 
 void Game::Update(const Uint64& deltaTime)
 {
-    float timeInSeconds = SDL_GetTicks()/1000.0f;
+    float timeInSeconds = SDL_GetTicks() / 1000.0f;
     greenValue = sin(timeInSeconds) / 2.0f + 0.5f;
 }
 
@@ -303,7 +444,6 @@ void Game::Render()
     /// Clear
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-
 
     //======================================================================================
     // Scene Rendering
@@ -331,11 +471,29 @@ void Game::Render()
     glDrawArrays(GL_TRIANGLES, 0, 3);
     */
 
+    /*
     // Vert Out Color
     glUseProgram(vertColorProgram);
     glUniform4f(uniformOurColorLoc, 0.0f, greenValue, 0.0f, 1.0f);
     glBindVertexArray(vaoTri);
     glDrawArrays(GL_TRIANGLES, 0, 3);
+    */
+
+    /*
+    // Color Per Vertex Triangle
+    colorPerVertexProgram.use();
+    glBindVertexArray(vaoColorTri);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    */
+
+    // Color Texture Rect
+    colorTexProgram.use();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, wallTexture);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, faceTexture);
+    glBindVertexArray(vaoColorTexRect);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     //======================================================================================
     // ImGui Rendering
@@ -346,7 +504,6 @@ void Game::Render()
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
 
     //======================================================================================
     // END
